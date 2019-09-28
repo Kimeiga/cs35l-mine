@@ -1,0 +1,155 @@
+- python:
+how to do a shallow v deep copy
+what is list slicing
+may need to translate complex list
+python 2 vs 3
+
+immutable:
+x=3
+y=x
+y=4
+print x
+3
+
+mutable:
+a=[1,2,3]
+b=a
+a.append(4)
+print b
+[1,2,3,4]
+
+
+python list;
+slicing
+list()
+copy.copy()
+copy.deepcopy() can change every detailed references
+
+a = ['foo', foo]
+b
+
+- week 4 c programming
+
+how to use pointers and how structs looks like (syntax if you create your own)
+
+malloc 
+realloc
+free
+
+ex: alloc to 2d array with malloc and free
+
+-g flag is debug mode
+
+gdb commands
+
+MC question for GDB
+
+backtrace | bt in gdb gives call stack 
+
+- week 5 system call
+
+goal is to protect key resources
+
+system call communicates between modes
+
+we only need one trap at the beginning of a system call.
+library functions also make system calls
+during a system call, the kernal calls the function on the user's behalf
+
+
+for answers: define the terms first
+
+
+- week 6 multithread
+
+when use "are" only one answer
+
+heap is shared but each has its own stack
+
+know how to create own threads, (function signatures)
+REWRITE SINGLE THREAD TO MULTI THREAD 
+p_threadjoin will wait until others finish
+pthread_exit will just exit
+
+pthread_mutex_lock()
+pthread_mutex_unlock()
+
+ther's overhead with unlocking
+
+3 different mutex scenarios, outside inside loop
+CAN YOU MAKE IT MORE EFFICIENT BY REARRANGING MUTEX CODE?
+
+add pthread mutex lock and ulock above and below critical section
+
+
+- week 7 ssh
+
+confidentiality; data integrity; authentication; authorization
+know the terms
+
+how public private key play a roll
+
+alic encrypt using bob's public key; create signature using her private key
+bob decrypt using his private key; verify signature using Alice's public key
+
+- week 8 dynamic linking
+
+static: once
+dynamic: add during execution
+
+linking v loading
+
+pros:
+avoid recompile
+
+cons:
+performance hit and missing libs
+
+ex: 
+Mention any 2 major differences between static linking and dynamic linking.
+
+ASKED TO MAKE MAKEFILE FOR DYNAMIC LINKING !!
+
+.a = static, .so = dynamic libraries
+
+- week 9 change management
+
+git
+why use version control
+key terms
+checkout: switch to new branch
+git -b
+untracked v tracked files
+git clean: deletes untracked files
+index tree
+block files
+each commit contains its own snapshot
+
+working copy v repository? AS DETAILED AS POSSIBLE
+working ocpy is the one that you checked out and are working on locally
+repo is on a serveerlasdkfja;l
+what's a commit? all changes and you want to send it to the repo
+branches for experimentation
+merge? how does it work?
+
+git rebase v git merge
+CAN DRAW DIAGRAM TO FACILITATE RESPONSE
+
+if you are pm, why you want team to maintain in git?
+
+get commit options
+git diff to get differences
+
+git add .
+git commit
+   
+
+-last tips--
+
+review log of assignment, print cheat sheets
+prepare for common commands
+find, diff, patch,
+
+problem sovle:
+bash shell
+other is c

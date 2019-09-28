@@ -1,0 +1,9 @@
+The top window shows all commits with three columns,
+containing the descriptions, name and emails, and dates
+respectively. It starts from the HEAD and grows down
+toward older commits.
+
+The bottom pane contains information about the current
+commit selected. The bottom left pane shows a diff
+of the files, and the bottom right pane shows a list
+of the changed files.

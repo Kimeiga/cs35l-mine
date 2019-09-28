@@ -1,0 +1,59 @@
+#!/bin/bash
+
+dir=$1 #first argument is directory
+D=$(find "$dir" -maxdepth 1 -type f | sort) #D is sorted list of files at dir
+IFS=$'\n' #set Internal file separator to new line so file names with spaces can be inputted
+
+declare -a FILEARRAY #array to hold regular files
+declare -a PERIODARRAY #array to hold files with initial .
+(( fileCount=0 )) #count for for loop
+(( periodCount=0 )) #count for period for loop
+
+for FILE in $D #loop through list of files
+do
+  if [ ! -r "$FILE" ] #if not allowed to read file, error
+  then
+    echo "not allowed to read file $FILE"
+  fi
+  if [ -f "$FILE" ] #if file exists
+  then
+    if [ "${FILE:0:1}" == "." ] #if file begins with .
+    then
+      PERIODARRAY[$periodCount]="$FILE" #store in PERIODARRAY
+      (( periodCount=periodCount+1 ))
+    else
+      FILEARRAY[$fileCount]="$FILE" #else store in FILEARRAY
+      (( fileCount=fileCount+1 ))
+    fi
+  else
+    echo "$FILE is not a file or something"
+  fi
+done
+TOTALARRAY=("${PERIODARRAY[@]}" "${FILEARRAY[@]}") #concatenate both arrays into one with periods first
+
+#compare each file against all others in array
+for FILE1 in "${TOTALARRAY[@]}"
+do
+  for FILE2 in "${TOTALARRAY[@]}"
+  do
+
+    (( FILE1INODE=$(stat -c '%i' "$FILE1") ))
+    (( FILE2INODE=$(stat -c '%i' "$FILE2") ))
+
+    if [ $FILE1INODE != $FILE2INODE ]
+    then
+      if [ "$FILE1" != "$FILE2" ]
+      then
+        cmp -s -- "$FILE1" "$FILE2"
+        (( comparison=$? ))
+        if [ $comparison == 0 ] #the files are the same
+        then
+	        #Create a hardlink to first file and delete destination
+          rm "$FILE2"
+          ln "$FILE1" "$FILE2"
+        fi
+      fi
+    fi
+
+  done
+done

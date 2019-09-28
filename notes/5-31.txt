@@ -1,0 +1,112 @@
+dynamic loading:
+
+dlopen  specify library to load  
+void *dlopen( const char *file, int mode);
+RTLD NOW (relocate now; RTLD LAZY relocate when needed
+dlsym  gives resolved address to a symbol within this object
+void *dlsym (void *restrict handle, const char *restrict name);
+check char *dlerror(); if error occurs 
+
+dlerror 
+dlclose
+
+
+int main(){
+
+dl_handle = dlopen("libmymath.so", RTLD_LAZY);
+
+
+if(!dl_handle) {
+	printf("dlopen() error - %s\n", dlerror()); return 1;
+
+}
+
+myfunc = dlsym(dl_handle, "mul5"); error = dlerror();
+if(error != NULL){
+	printf
+}
+
+myfunc(&i);
+
+
+printf("i = %d\n, i);
+dlclose(dl_handle);
+}
+
+complie: 
+
+gcc main.c -o main -ldl
+
+set LD_LIBRARY_PATH to include path of dynamic library
+
+
+
+
+
+mymath.h
+
+void mul5(int *i)
+
+
+mul5.c
+
+#include "mymath.h"
+void mul5(int *) {
+	*i *= 5;
+}
+
+gcc -c mul5.c -o mul5.o
+ar -cvq libmymath.a mul5.o -> static lib
+gcc -shared -fpic -o libmymath.so mul5.o
+
+
+
+
+Attributes of functions: (feature of C program)
+better memory organization, call/return convention annotation/ code generation options
+
+use attribute keyword on declaration of function
+
+this reference will be tested
+
+__attribute__ ((__constructor__))
+is run when dlopen() is called 
+
+__attribute__ ((__destructor__))
+is run when dlclose() is called (after main function)
+
+
+__attribute__ ((__constructor__))
+void to_run_before (void) {
+	printf("pre_func\n"); //runs before main 
+}
+
+
+divide randall.c = randcpuid.c + randlibhw.c + randlibsw.c + randmain.c
+
+
+build libraries
+load libarries
+run functions in libarries
+
+stitch file together via static and dynamic linking
+
+randmain.c must use dynamic loading, dynamic linking to link with randlibhw.c and randlibsw.c
+
+randmain.mk to do the linking
+
+-fPIC compile directive to compile directive to output position independed code
+-lXXX link wiht libXXX.so
+-L file .so file from this path
+-Wl passes options to the linker
+-c gen obj cod from c code
+-shared produce a shared code that can be linked with other objects to form an executable
+
+randall.c outputs N random bytes of data
+
+
+
+WEEK 10:
+
+git version control:
+

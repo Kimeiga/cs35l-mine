@@ -1,0 +1,14 @@
+#!/bin/sh
+
+tr -d '\n' <&0 |
+sed 's/<\/td>/\n/g' |
+sed '/^  <\/tr>/ d' |
+grep '^[[:space:]]*<td>' |
+sed 's/<[^>]*>//g' |
+tr [:upper:] [:lower:] |
+tr '\`' "\'" |
+tr -s '[,[:space:]]' '\n' |
+sed "/[^[:alpha:]']/d" |
+tr -cs "pk\'mnwlhaeiou" '[\n*]' |
+sed '/^\s*$/d' |
+sort -u

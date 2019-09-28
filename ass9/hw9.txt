@@ -1,0 +1,99 @@
+I cloned the repo again for this portion of the assignment
+
+$ git clone ~eggert/src/gnu/diffutils
+
+I checked out version 3.0 of Diffutils and branched
+
+$ cd diffutils
+$ git checkout v3.0 -b quote
+
+I then installed my patch into the quote branch with the patch command.
+
+$ patch -p1 < ../quote-3.0-patch.txt
+
+patching file src/cmp.c
+patching file src/diff.c
+patching file src/diff3.c
+patching file src/dir.c
+patching file src/sdiff.c
+patching file src/util.c
+
+the only files modified were the 6 I modified.
+
+I used add-change-log-entry-other-window (C-x 4 a) to
+create a change log for the patch.
+
+$ emacs
+$ C-x 4 a
+
+I entered all 6 modified files followed by a brief description
+        * src/cmp.c:    Replaced graves with apostrophes
+        * src/diff.c:   Replaced graves with apostrophes
+        * src/diff3.c:  Replaced graves with apostrophes
+        * src/dir.c:    Replaced graves with apostrophes
+        * src/sdiff.c:  Replaced graves with apostrophes
+        * src/util.c:   Replaced graves with apostrophes
+
+I then add all files to the commit and commit with the message
+provided by the changelog.
+
+$ git add .
+$ git commit -F \#CHANGELOG#
+
+I now run git format-patch to generate the patch
+
+$ git format-patch -1 --stdout > formatted-patch.txt
+
+I was working with Rishan Girish. 
+His UID is 905016242.
+We set each other our formatted-patch.txt files via scp.
+
+The scp command was run from Rishan's computer
+
+$ scp formatted-patch.txt hakan@lnxsrv.seas.ucla.edu:~/cs35l/ass9/diffutils/
+
+then he created a partner branch
+
+$ git checkout v3.0 -b partner
+
+then he applied the patch
+
+$ git am --abort
+$ git am < formatted-patch.txt
+
+I then tested this patch by remaking diffutils.
+
+$ ./bootstrap
+$ ./configure
+$ make
+$ make check
+
+I verified the patch with the following commands
+
+$ ./src/diff --help
+$ ./src/diff . -
+
+These commands produced messages with ' characters
+rather than leading ` characters, which means that the patch worked.
+
+I also verified that the log works 
+
+$ git log
+
+Now I ran git distdir and verified the contents of diffutils*
+
+$ make distdir
+$ cd diffutils*
+$ emacs ChangeLog
+
+the correct last changelog addition is present
+
+To reach the emacs git repository, I ssh'ed with -X into the linux
+server and navigated to it.
+
+$ ssh -X hakan@lnxsrv.seas.ucla.edu
+$ cd ~eggert/src/gnu/emacs
+$ gitk
+
+Within gitk, I found the correct commit, screenshotted it,
+and then wrote about the window structure in a text file.

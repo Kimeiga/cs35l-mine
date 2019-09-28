@@ -1,0 +1,149 @@
+First I download the old coreutils and untar it.
+
+wget https://web.cs.ucla.edu/classes/spring18/cs35L/assign/coreutils-with-bug.tar.gz
+
+tar -xzf coreutils-with-bug.tar.gz
+
+I now make the coreutils. To prevent optimizations that might
+make it harder to debug, I set the configure flags as 
+follows.
+
+cd coreutils-with-bug/
+./configure CFLAGS="-g -O0"
+make
+
+While making, there was the following error:
+
+In file included from utimecmp.c:41:
+utimens.h:2:5: error: conflicting types for 'futimens'
+ int futimens (int, char const *, struct timespec const [2]);
+     ^~~~~~~~
+In file included from utimecmp.h:25,
+                 from utimecmp.c:25:
+/usr/include/sys/stat.h:373:12: note: previous declaration of 'futimens' was here
+ extern int futimens (int __fd, const struct timespec __times[2]) __THROW;
+            ^~~~~~~~
+make[3]: *** [Makefile:659: utimecmp.o] Error 1
+make[3]: Leaving directory '/w/home.20/cs/ugrad/hakan/cs35l/ass4/coreutils-with-bug/lib'
+make[2]: *** [Makefile:414: all] Error 2
+make[2]: Leaving directory '/w/home.20/cs/ugrad/hakan/cs35l/ass4/coreutils-with-bug/lib'
+make[1]: *** [Makefile:419: all-recursive] Error 1
+make[1]: Leaving directory '/w/home.20/cs/ugrad/hakan/cs35l/ass4/coreutils-with-bug'
+make: *** [Makefile:357: all] Error 2
+
+This error was caused by conflicting data types for futimens.
+To resolve this error, we download the patch and apply it.
+
+wget https://web.cs.ucla.edu/classes/spring18/cs35L/assign/coreutils.diff 
+patch -p0 < coreutils.diff 
+
+It patched the following files:
+
+patching file lib/utimens.c
+patching file lib/utimens.h
+patching file src/copy.c
+patching file src/tee.c
+patching file src/touch.c
+
+The patch renamed futimens to coreutils_futimens and tee to 
+coreutils_tee to resolve type conflicts. 
+
+I rebuild with make command:
+
+make.
+
+I now test the bug on a local file system.
+To find one, I run df -l
+
+df -l 
+
+/run/user/12322 is the path of tmpfs, a local file system.
+I move there and try to reproduce the bug 
+
+cd /run/user/12322
+tmp=$(mktemp -d)
+cd $tmp
+touch -d '1918-11-11 11:00 GMT' wwi-armistice
+touch now
+sleep 1
+touch now1
+~/cs35l/ass4/coreutils-with-bug/src/ls -lt --full-time wwi-armistice now now1
+
+this produces the following buggy result 
+
+-rw-r--r-- 1 hakan csugrad 0 1918-11-11 03:00:00.000000000 -0800 wwi-armistice
+-rw-r--r-- 1 hakan csugrad 0 2018-05-04 17:28:47.384748910 -0700 now1
+-rw-r--r-- 1 hakan csugrad 0 2018-05-04 17:28:46.380715022 -0700 now
+
+wwi-armistice should be the third element.
+
+I then use the gdb to find the cause of the bug.
+
+gdb ~/cs35l/ass4/coreutils-with-bug/src/ls
+
+to find the functions used, we run the following 
+
+(gdb) info functions
+
+This displays all functions. One is called compare_mtime and possibly 
+contains the time ordering bug. We set a breakpoint at the function
+and step through it.
+
+(gdb) break compare_mtime
+(gdb) layout asm
+(gdb) list
+(gdb) si 
+
+after stepping for a while, we arrive at timespec_cmp 
+
+/* Return negative, zero, positive if A < B, A == B, A > B, respectively.
+   │44         Assume the nanosecond components are in range, or close to it.  */
+   │45      static inline int                                  
+   │46      timespec_cmp (struct timespec a, struct timespec b)
+   │47      {                                
+   │48        int diff = a.tv_sec - b.tv_sec;
+   │49        return diff ? diff : a.tv_nsec - b.tv_nsec;
+} 
+  
+There is possibility of integer overflow in diff if a.tv_sec is very small.
+Instead of subtraction, this function should use an if statement to 
+determine if A < B, A == B, or A > B. I copied then changed the file to 
+reflect this.
+
+cp coreutils-with-bug/lib/timespec.h timespecNew.h
+
+I also added a changelog to the file.
+
+emacs timespecNew
+C-x 4 a
+C-x C-c
+
+I then generated the diff with this command 
+
+diff -u coreutils-with-bug/lib/timespec.h timespecNew.h > lab4.diff
+
+I appended the changelog to the top of the diff.
+
+
+I try to reproduce the bug on the home directory
+
+cd ~
+touch -d '1918-11-11 11:00 GMT' wwi-armistice
+touch now
+sleep 1
+touch now1
+TZ=UTC0 ls -lt --full-time wwi-armistice now now1
+
+this produces the following output: 
+
+-rw-r--r-- 1 hakan csugrad 0 2054-12-17 17:28:16.000000000 +0000 wwi-armistice
+-rw-r--r-- 1 hakan csugrad 0 2018-05-05 00:17:00.442647000 +0000 now1
+-rw-r--r-- 1 hakan csugrad 0 2018-05-05 00:16:59.437551000 +0000 now
+
+The SEASnet NFS filesystem has unsigned 32-bit time stamps while the 
+local file system of linux has signed 64-bit time stamps. The signed
+bit is interpreted as a positive value on SEASnet and thus a year 
+in the past produces a year far in the future.
+
+Therefore, we must use the local file systems
+

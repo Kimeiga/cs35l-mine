@@ -1,0 +1,57 @@
+I ran sort --version and found that the version was 8.29 which is newer than
+8.6 so that's fine.
+
+I generated the random floats to test parallelism of sort.
+
+We generated a file with 10,000,000 random double-precision floating point
+numbers, with one per line, in order to have a large file to test parallelizing
+sort on. To begin, we looked at the od command and its options and then
+processed the output of od using sed and tr.
+
+od --help
+od -tf4 -N 32 < /dev/urandom
+od -An -tf4 -N 32 < /dev/urandom
+od -An -tf4 -N 32 < /dev/urandom | sed "s/^[ \t]*//"
+od -An -tf4 -N 32 < /dev/urandom | sed "s/^[ \t]*//" | tr -s ' ' '\n'
+od -An -tf4 -N 40000000 < /dev/urandom | sed "s/^[ \t]*//" | tr -s ' ' '\n' > floats.txt
+
+-An removes addresses,
+-tf4 outputs single precision floats
+-N sets number of bytes to output
+sed deletes leading whitespace
+tr changes remaining whitespace to newlines.
+
+I confirm there are 10000000 floats
+
+wc -l < floats.txt
+outputs 10000000
+
+I now time sort -g
+
+time -p sort -g floats.txt > /dev/null
+real 21.26
+user 114.49
+sys 0.46
+
+time -p sort -g --parallel=1 floats.txt > /dev/null
+real 108.13
+user 107.91
+sys 0.21
+
+time -p sort -g --parallel=2 floats.txt > /dev/null
+real 58.61
+user 111.54
+sys 0.25
+
+time -p sort -g --parallel=4 floats.txt > /dev/null
+real 33.87
+user 113.33
+sys 0.3
+
+time -p sort -g --parallel=8 floats.txt > /dev/null
+real 21.07
+user 114.42
+sys 0.46
+
+user and system times seem roughly the same but the real time goes down
+tremendously between levels of parallelisation.

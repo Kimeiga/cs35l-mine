@@ -1,0 +1,10 @@
+1. man man
+2. which
+3. 
+4. readlink
+5.  /usr's emacs is for yourself; plain emacs is in shared library, emacs -version; or open emacs and first few lines show version number
+6. 
+7.  find, use file type to be only directory, option for showing days
+8.
+9. sort, pick oldest one, use last modified time,
+10. localedef

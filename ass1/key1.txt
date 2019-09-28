@@ -1,0 +1,15 @@
+Exercise 1.1:
+1. emacs exer1.html
+2. C-s H T M L Enter
+3. C-s s c Enter M-b
+4. C-s s e l f Enter M-b
+5. C-s a r r o w Enter M-b
+6. C-e
+7. C-a
+8. Yes, it is faster to search for a word with C-s and then move by 1 word with M-b and M-f and to the front/back of the line with C-a and C-e.
+9. No, I did not.
+10. C-x C-c
+
+Exercise 1.2:
+1. emacs exer2.html
+2. 

@@ -1,0 +1,73 @@
+I teamed up with my classmates Will Fehrnstrom and Andrew Battat.
+
+First I downloaded an image of Debian on my microSD card and flashed my
+beaglebone. I then connected it to my computer and downloaded the drivers.
+I used putty to ssh into the beaglebone and verified that openssh-server
+and openssh-client were installed.
+
+- SERVER
+
+I generated public and private keys with ssh-keygen. I stored them in
+~/.ssh/is_rsa, the default location.
+
+I then created an account on the server for the clients, my partners, with
+sudo useradd -d /home/<directory> -m <username>`. I used the username
+"will", the home directory "will", and password "wfehrnstrom". I also created
+a user "andrew", the home directory "andrew", and password "abattat".
+In each directory I created an .ssh directory with the permissions using
+sudo mkdir .ssh. I used chown and chmod to set the owner of the files to
+their respective users.
+
+sudo useradd -d /home/will -m will
+sudo passwd wfehrnstrom
+
+sudo useradd -d /home/andrew -m andrew
+sudo passwd abattat
+
+cd /home/will/
+sudo mkdir .ssh
+
+sudo chown -R will .ssh
+sudo chmod 700 .ssh
+
+cd /home/andrew/
+sudo mkdir .ssh
+
+sudo chown -R andrew .ssh
+sudo chmod 700 .ssh
+
+
+I found the ip of my Beaglebone with ifconfig
+
+ifconfig
+
+- CLIENT
+
+After they connected to my beaglebone, I worked as the client to connect to
+each of their beaglebones.
+
+I generated new public and private keys and stored the public key
+in ~/.ssh/id_rsa.pub.
+
+ssh-keygen
+
+I then copied my public key to their server for key-based authentication.
+
+ssh-copy-id -i hakan@192.168.43.14
+
+I added the private key to the authentication agent
+
+ssh-add
+
+I logged into the server and provided the password "halpay"
+
+ssh -X hakan@192.168.43.14
+
+I added the -X option to enable X11 session forwarding to enable graphical
+display of commands I run on the server.
+
+I ran firefox on the remote host and a window opened on my computer to firefox.
+I tried wtih with xterm and gedit as well.
+
+Thus we have successfully configured the clients/servers in our group for
+securly logging into each other's beaglebones.

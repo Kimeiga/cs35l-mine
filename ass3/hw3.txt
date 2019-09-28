@@ -1,0 +1,53 @@
+Q1:
+
+In order to inspect how fast the buggy and patched
+ls -a -A commands are, I used the time command to store
+their times in bash variables and then echoed them
+with the following commands
+
+buggyTime="$(time ( ./coreutilsInstall/bin/ls -a -A )
+2>&1 1>/dev/null )"
+
+patchedTime="$(time ( ./coreutils-8.29/src/ls -a -A )
+2>&1 1>/dev/null )"
+
+echo $buggyTime
+echo $patchedTime
+
+the buggy ls had the following results:
+
+real 0m0.003s user 0m0.001s sys 0m0.001s
+
+the patched ls had the following results:
+
+real 0m0.003s user 0m0.000s sys 0m0.002s
+
+They have the same real time, and about
+the same user and system times. It does
+not appear that the patch has slowed
+or sped up the command significantly.
+
+
+Q2:
+
+The patched version of ls probably will not introduce
+problems with applications, unless those applications
+rely on the command ls -a -A to produce . and ..
+
+Q3:
+
+There is no output because there's nothing in dev/null
+
+Q4:
+
+When running it with Python 3, you get the following
+error:
+
+  File "randline.py", line 69
+    except IOError as (errno, strerror):
+                      ^
+SyntaxError: invalid syntax
+
+
+This is because in Python 2 you could iterate over an
+exception, but this has been fixed in Python 3.

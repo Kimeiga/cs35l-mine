@@ -1,0 +1,41 @@
+Dynamic Linking and Assignment 
+
+Final Exam:
+40% MC 30% short answer 30% coding 
+
+Assign 9 and report June 8
+
+Report
+
+2-4 pages with references
+
+intro
+problem (what is vr?)
+current statement 
+;alskdjf;alskdf
+
+
+Compiler compiles to .o obj (machine instructions) files, and linker will generate executable (link all modules together and resolve address)
+
+
+Static Library
+each program has own copy of library, takes up more space in memory, tied to specific version of the lib.
+
+Shared Library
+Shared by multiple programs, lower memory footprint, new version of lib doesn't require a recompile of the source code
+
+dynamic linking is loading the library when needed, but dynamic load is loading library when needed
+both are only performed during runtime
+
+
+static linking: .a
+dynamic linking .so
+
+#!/bin/bash
+
+for x in "$(ls /usr/bin | awk 'NR%101==604926367%101'$1)"; do
+ y=`which $x`
+ ldd $y
+done
+
+./ldd_run | grep so | sort -u

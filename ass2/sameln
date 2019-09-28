@@ -1,0 +1,11 @@
+#!/bin/bash
+
+grep '<td>.\{1,\}<\/td>' |
+sed -n '0~2p' |
+tr '[:upper:]' '[:lower:]' |
+tr "\`" "\'" |
+sed 's/<[^>]*>//g' <&0 |
+tr -s '[,[:space:]]' '\n' |
+grep "^[pk\' mnwlhaeiou]\{1,\}$" |
+sed '/^\s*$/d' |
+sort -u

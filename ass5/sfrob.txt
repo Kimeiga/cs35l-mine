@@ -1,0 +1,28 @@
+I created an input file with about 100 lines of frobnicated
+text and sorted it with the different implementations
+of sfrob
+
+time ./sfrob <input
+real    0m0.003s
+user    0m0.001s
+sys     0m0.002s
+
+time ./sfrobu <input
+real    0m0.013s
+user    0m0.001s
+sys     0m0.010s
+
+time ./sfrobs <input
+real    0m0.007s
+user    0m0.006s
+sys     0m0.005s
+
+time ./sfrobu -f <input
+real    0m0.019s
+user    0m0.005s
+sys     0m0.008s
+
+time ./sfrobs -f <input 
+real    0m0.007s
+user    0m0.003s
+sys     0m0.007s

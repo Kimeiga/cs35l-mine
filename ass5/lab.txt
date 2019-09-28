@@ -1,0 +1,78 @@
+I wrote tr2b.c and tr2u.c to the specifications provided.
+For both scripts, I created an ASCII map of all ASCII characters
+and used the "to" argument to transform the "from" characters
+of the map to the "to" characters. I then applied this to each 
+individual byte of the input and wrote the result to the output.
+
+Each script also checks for whether the correct number of arguments
+are present, whether the "from" argument has unique characters, 
+and whether the "from" and "to" arguments have the same length.
+
+The tr2b.c script uses getChar and putChar to read from input and 
+write to output while the tr2u.c script uses read and write to 
+do the respective tasks. 
+
+I built the executables
+
+gcc tr2b.c -o tr2b
+gcc tr2u.c -o tr2u
+
+To create a file with 5000000 bytes of ascii characters to transform
+I wrote a script with a for loop that uses putChar to write a 
+random character
+
+./largegen > large.txt
+
+I used the strace command to compare the system calls
+issued by the tr2b and tr2u commands when being fed 
+the large.txt as input. I made sure that the outputs were identical
+first.
+ 
+ 
+strace -o straceB ./tr2b 'ABC' 'XYZ' <large.txt >largeB.txt
+strace -o straceU ./tr2u 'ABC' 'XYZ' <large.txt >largeU.txt
+
+diff -u largeB.txt largeU.txt
+
+(no output)
+
+
+cat straceB | wc -l
+1252
+cat straceU | wc -l
+10000026
+
+It is apparent that tr2b has less system calls than tr2u.
+tr2u has about 10,000,000 system calls because for each 
+character it reads, it also writes a character, and there
+are 5,000,000 characters in the input.
+
+I use the following commands when copying a file to my terminal
+
+
+strace -o straceB2 ./tr2b 'ABC' 'XYZ' <large.txt
+strace -o straceU2 ./tr2u 'ABC' 'XYZ' <large.txt
+
+cat straceB2 | wc -l
+5524
+cat straceU2 | wc -l
+10000026
+
+tr2b now has to print to the terminal, resulting in a greater 
+number of system calls than last time.
+
+Using the time command, I measure the speed of the programs
+when copying the same amount of data
+
+time ./tr2b 'ABC' 'XYZ' <large.txt
+real    0m0.920s
+user    0m0.191s
+sys     0m0.042s
+
+time ./tr2u 'ABC' 'XYZ' <large.txt
+real    0m10.691s
+user    0m1.163s
+sys     0m9.526s
+
+tr2b is 9.771 seconds faster than tr2u
+

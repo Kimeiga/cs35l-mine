@@ -1,0 +1,126 @@
+I copied the diffutils from  ~eggert/src/gnu/diffutils
+with
+
+$ git clone  ~eggert/src/gnu/diffutils
+
+I entered diffutils and placed the git log in git-log.txt
+
+$ cd diffutils
+$ git log > git-log.txt
+
+Then I generate a list of tags used for Diffutils using
+the “git tag” command.
+
+$ git tag > git-tag.txt
+
+I used grep to find the correct commit
+
+$ git log --grep "maint: quote 'like this'"
+
+It is commit 62ca21c8c1a5aa3488589dcb191a4ef04ae9ed4f
+
+I get details on the commit
+
+$ git show 62ca21c8c1a5aa3488589dcb191a4ef04ae9ed4f
+
+I generated a patch for that single commit with
+git format-patch -1
+
+$ git format-patch -1 --stdout 62ca21c8c1a5aa3488589dcb191a4ef04ae9ed4f
+ > quote-patch.txt
+
+I get version 3 of diffutils
+
+$ git checkout v3.0
+
+I applied quote-patch
+
+$ patch -p1 < quote-patch.txt
+
+I got the status
+
+$ git status
+
+many files have been modified
+
+
+I used vc-diff and vc-revert to revert changes to files without .c extensions.
+I opened emacs on all relevant files.
+
+emacs ms/config.bat; emacs ms/config.site; emacs po/en.po;
+emacs src/diff.h; emacs src/system.h; emacs tests/help-version;
+emacs NEWS; emacs README; emacs TODO; emacs doc/diagmeet.note
+
+I reverted changes with C-x v u, then exited with C-x C-c to the next file.
+
+I revert any changes to comment hunks:
+
+emacs src/diff3.c; emacs src/dir.c; emacs src/ifdef.c; emacs src/io.c;
+emacs src/sdiff.c; emacs src/side.c; emacs src/util.c; emacs src/analyze.c;
+emacs src/cmp.c; emacs src/context.c; emacs src/diff.c
+
+I used C-x v = (vc-diff) to open the diff reverted comment changes with C-u C-c C-a
+(revert current hunk), the opposite of C-c C-a (diff-apply-hunk) which applies the changes.
+the changes. I then exited and saved.
+
+I examined *.c.rej and manually applied the rejected patches.
+
+emacs src/*.c.rej
+emacs src/diff.c
+emacs src/diff3.c
+
+I remove untracked files
+
+$ git clean -f -n
+$ git clean -f
+
+git status shows 6 files
+
+modified:   src/cmp.c
+modified:   src/diff.c
+modified:   src/diff3.c
+modified:   src/dir.c
+modified:   src/sdiff.c
+modified:   src/util.c
+
+I git diff'ed into a file
+
+$ git diff > quote-3.0-patch.txt
+$ wc -l quote-3.0-patch.txt
+326 quote-3.0-patch.txt
+
+I read README-hacking and found the build instructions
+
+$ ./bootstrap
+$ ./configure
+$ make
+$ make check
+
+I ran these commands on lnxsrv08 so no extra patch was needed.
+
+I verify that my local diffutils does the right thing
+
+$ ./src/diff . -
+./src/diff: cannot compare '-' to a directory
+
+$ ./src/diff --help
+
+the help page had the correct quotations.
+
+To compare the source code of Diffutils 3.0 to the source code of my modified version, I cloned the repository again
+
+$ mv diffutils diffutils-3.0-patch
+$ git clone ~eggert/src/gnu/diffutils diffutils-3.0
+$ gd diffutils-3.0
+$ git checkout v3.0
+
+$ diffutils-3.0-patch/src/diff -pru diffutils-3.0 diffutils-3.0-patch >quote-3.0-test.txt
+
+I compared quote-3.0-test.txt and quote-3.0-patch.txt
+
+$ diff -u quote-3.0-test.txt diffutils-3.0-patch/quote-3.0-patch.txt | less
+
+The files are not identical. There are changes of ` to ' in the patch
+text file in the strings in the code.
+
+Therefore, these are not innocous changes.

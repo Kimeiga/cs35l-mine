@@ -1,0 +1,17 @@
+trusted software: stuff that can manage the hardware.
+
+getchar triggeres system call "read()" 
+
+a trap is a signal for processor to stop at that stage and move to supervisor space 
+after privilege switch, kernel executes code on behalf of user 
+
+dont worry about device management 
+
+buffer: you specify pointer/array to store the things you read 
+
+write: read from buffer and write to your file 
+
+unbufffered in new, instant way of doing io
+
+use both, compare performance
+

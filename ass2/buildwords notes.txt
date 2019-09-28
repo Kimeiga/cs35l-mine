@@ -1,0 +1,12 @@
+tr
+sed
+grep
+sort
+
+
+#tr -d '[:blank:]'
+
+
+# sed 's/<[^>]*>//g' <&0 |
+# tr -d '[:blank:]' |
+# tr -s '\n'

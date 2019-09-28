@@ -1,0 +1,810 @@
+To download the tar file of coreutils, we run the command 
+
+wget ftp://ftp.gnu.org/gnu/coreutils/coreutils-8.29.tar.xz
+
+to download the signature, we run the command 
+
+wget 
+ftp://ftp.gnu.org/gnu/coreutils/coreutils-8.29.tar.xz.sig
+
+to download the keyring we run the command 
+
+wget https://ftp.gnu.org/gnu/gnu-keyring.gpg
+
+to verify its signature, we run the command 
+
+gpg --verify --keyring 
+./gnu-keyring.gpg coreutils-8.29.tar.xz.sig
+
+gpg responds that the signature is good but it is not
+certified with a trusted signature!
+This is because we have not signed it with our own key,
+because we do not have one.
+It does not reflect on the safety of the package itself.
+
+to extract its files, we run 
+
+tar xvfJ coreutils-8.29.tar.xz
+
+we then create the installation folder for the coreutils
+
+mkdir coreutilsInstall
+
+Then we enter the coreutils-8.29 directory and configure 
+the prefix with our new installation directory
+
+./configure --prefix=/u/cs/ugrad/hakan/coreutilsInstall
+
+we then run the following commands to install the package
+into our installation directory.
+
+make 
+make install
+
+There were no problems with the installation. 
+
+to reproduce the bug, we create a shell script named la
+with the following contents.
+
+#!/bin/sh
+exec ls -a "$@"
+
+We then must change permissions so we can run la 
+
+chmod +x la 
+
+we run ./la -A in our working directory to observe the bug.
+it produces this output:
+
+.  ..  coreutils-8.29  coreutils-8.29.tar.xz  
+coreutils-8.29.tar.xz.sig  coreutilsInstall
+gnu-keyring.gpg  la  lab3.txt
+
+the la -A command is supposed to produce the above output
+but without the . and ..
+
+We try the ls -a -A command from coreutilsInstall that
+la -A translates to. It produces the same result
+
+./coreutilsInstall/bin/ls -a -A
+
+.  ..  coreutils-8.29  coreutils-8.29.tar.xz  
+coreutils-8.29.tar.xz.sig  coreutilsInstall
+gnu-keyring.gpg  la  lab3.txt
+
+We also try the ls -a -A command that la -A translates
+to. It produces the same output, confirming that this 
+is a bug with the coreutils.
+
+./coreutils-8.29/src/lsls -a -A
+
+.  ..  coreutils-8.29  coreutils-8.29.tar.xz  
+coreutils-8.29.tar.xz.sig  coreutilsInstall
+gnu-keyring.gpg  la  lab3.txt
+
+To get the patch we get the patch file posted in message
+10 of bug report 30963
+
+wget "https://debbugs.gnu.org/cgi/bugreport.cgi?msg=10;
+bug=30963;filename=0001-ls-A-now-overrides-a.patch;att=1"
+
+
+we rename it to patchFile for legibility
+
+mv bugreport.cgi\?msg\=10\;bug\=30963\;filename
+\=0001-ls-A-now-overrides-a.patch\;att\=1 patchFile
+
+we move it to coreutils-8.29 and apply this patch with
+the command 
+
+patch -p1 < patchFile
+
+The -p1 option removes one of the leading slashes from
+each filename in patchFile.
+
+the output is the following 
+
+patching file NEWS
+Hunk #1 FAILED at 4.
+1 out of 1 hunk FAILED -- saving rejects to file NEWS.rej
+patching file src/ls.c
+Hunk #1 succeeded at 1900 (offset -3 lines).
+patching file tests/local.mk
+patching file tests/ls/a-option.sh
+
+we then run make but do not follow with make install 
+because we do not want to reinstall it elsewhere.
+
+make
+
+I ran make and was greeted with a long error complaining
+that it couldn't find 'automake-1.15'.
+I had already preappended my path, so I ran the following
+command to reconfigure.
+
+autoreconf -f -i
+
+Afterwards, I was able to run "make". We notice that fewer
+files are being recompiled (there are fewer instances of
+entering or leaving directories)
+
+make
+
+the /bin/sh ./config.status --recheck command rechecks the
+integrity of the source files and probably is not 
+needed in this case.
+
+the make all-recursive command applies the compilation to
+the relavant source files indicated after the patch in the
+Makefile.
+
+This command is necessary.
+
+The following is a portion of the output of the 
+make command; after the initial checking conditions. 
+
+make  all-recursive
+make[1]: Entering directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29'
+Making all in po
+make[2]: Entering directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29/po'
+make[2]: Nothing to be done for 'all'.
+make[2]: Leaving directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29/po'
+Making all in .
+make[2]: Entering directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29'
+make[3]: Entering directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29'
+make[3]: Leaving directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29'
+rm -f lib/stddef.h
+  CC       src/chroot.o
+  CC       src/version.o
+  AR       src/libver.a
+  CC       lib/copy-acl.o
+  CC       lib/set-acl.o
+  CC       lib/acl-errno-valid.o
+  CC       lib/acl-internal.o
+  CC       lib/get-permissions.o
+  CC       lib/set-permissions.o
+  CC       lib/allocator.o
+  CC       lib/areadlink.o
+  CC       lib/areadlink-with-size.o
+  CC       lib/areadlinkat.o
+  CC       lib/argmatch.o
+  CC       lib/argv-iter.o
+  CC       lib/backupfile.o
+  CC       lib/backup-rename.o
+  CC       lib/backup-find.o
+  CC       lib/base32.o
+  CC       lib/base64.o
+  CC       lib/binary-io.o
+  CC       lib/bitrotate.o
+  CC       lib/buffer-lcm.o
+  CC       lib/c-ctype.o
+  CC       lib/c-strcasecmp.o
+  CC       lib/c-strncasecmp.o
+  CC       lib/c-strtod.o
+  CC       lib/c-strtold.o
+  CC       lib/canon-host.o
+  CC       lib/canonicalize.o
+  CC       lib/careadlinkat.o
+  CC       lib/cloexec.o
+  CC       lib/close-stream.o
+  CC       lib/closein.o
+  CC       lib/closeout.o
+  CC       lib/md5.o
+  CC       lib/sha1.o
+  CC       lib/sha256.o
+  CC       lib/sha512.o
+  CC       lib/cycle-check.o
+  CC       lib/di-set.o
+  CC       lib/diacrit.o
+  CC       lib/opendir-safer.o
+  CC       lib/dirname.o
+  CC       lib/basename.o
+  CC       lib/dirname-lgpl.o
+  CC       lib/basename-lgpl.o
+  CC       lib/stripslash.o
+  CC       lib/dtoastr.o
+  CC       lib/dtotimespec.o
+  CC       lib/exclude.o
+  CC       lib/exitfail.o
+  CC       lib/fadvise.o
+  CC       lib/chmodat.o
+  CC       lib/chownat.o
+  CC       lib/creat-safer.o
+  CC       lib/open-safer.o
+  CC       lib/fd-hook.o
+  CC       lib/fd-reopen.o
+  CC       lib/fd-safer-flag.o
+  CC       lib/dup-safer-flag.o
+  CC       lib/fdutimensat.o
+  CC       lib/file-has-acl.o
+  CC       lib/file-set.o
+  CC       lib/file-type.o
+  CC       lib/filemode.o
+  CC       lib/filenamecat.o
+  CC       lib/filenamecat-lgpl.o
+  CC       lib/filevercmp.o
+  CC       lib/fopen-safer.o
+  CC       lib/fprintftime.o
+  CC       lib/freading.o
+  CC       lib/freadseek.o
+  CC       lib/freopen-safer.o
+  CC       lib/ftoastr.o
+  CC       lib/full-read.o
+  CC       lib/full-write.o
+  CC       lib/gethrxtime.o
+  CC       lib/xtime.o
+  CC       lib/getndelim2.o
+  CC       lib/getprogname.o
+  CC       lib/gettime.o
+  CC       lib/getugroups.o
+  CC       lib/hard-locale.o
+  CC       lib/hash.o
+  CC       lib/hash-pjw.o
+  CC       lib/hash-triple.o
+  CC       lib/heap.o
+  CC       lib/human.o
+  CC       lib/i-ring.o
+  CC       lib/idcache.o
+  CC       lib/ino-map.o
+  CC       lib/imaxtostr.o
+  CC       lib/inttostr.o
+  CC       lib/offtostr.o
+  CC       lib/uinttostr.o
+  CC       lib/umaxtostr.o
+  CC       lib/ldtoastr.o
+  CC       lib/linebuffer.o
+  CC       lib/localcharset.o
+  CC       lib/glthread/lock.o
+  CC       lib/long-options.o
+  CC       lib/malloca.o
+  CC       lib/math.o
+  CC       lib/mbchar.o
+  CC       lib/mbiter.o
+  CC       lib/mbsalign.o
+  CC       lib/mbscasecmp.o
+  CC       lib/mbschr.o
+  CC       lib/mbslen.o
+  CC       lib/mbsstr.o
+  CC       lib/mbswidth.o
+  CC       lib/mbuiter.o
+  CC       lib/memcasecmp.o
+  CC       lib/memchr2.o
+  CC       lib/memcmp2.o
+  CC       lib/memcoll.o
+  CC       lib/mgetgroups.o
+  CC       lib/mkancesdirs.o
+  CC       lib/dirchownmod.o
+  CC       lib/mkdir-p.o
+  CC       lib/modechange.o
+  CC       lib/mpsort.o
+  CC       lib/nproc.o
+  CC       lib/nstrftime.o
+  CC       lib/openat-die.o
+  CC       lib/openat-safer.o
+  CC       lib/parse-datetime.o
+  CC       lib/physmem.o
+  CC       lib/pipe2.o
+  CC       lib/posixtm.o
+  CC       lib/posixver.o
+  CC       lib/printf-frexp.o
+  CC       lib/printf-frexpl.o
+  CC       lib/priv-set.o
+  CC       lib/progname.o
+  CC       lib/propername.o
+  CC       lib/qcopy-acl.o
+  CC       lib/qset-acl.o
+  CC       lib/quotearg.o
+  CC       lib/randint.o
+  CC       lib/randperm.o
+  CC       lib/randread.o
+  CC       lib/rand-isaac.o
+  CC       lib/read-file.o
+  CC       lib/readtokens.o
+  CC       lib/readtokens0.o
+  CC       lib/renameat2.o
+  CC       lib/root-dev-ino.o
+  CC       lib/safe-read.o
+  CC       lib/safe-write.o
+  CC       lib/same.o
+  CC       lib/save-cwd.o
+  CC       lib/savedir.o
+  CC       lib/savewd.o
+  CC       lib/se-context.o
+  CC       lib/se-selinux.o
+  CC       lib/settime.o
+  CC       lib/sig-handler.o
+  CC       lib/sockets.o
+  CC       lib/stat-time.o
+  CC       lib/statat.o
+  CC       lib/mkstemp-safer.o
+  CC       lib/striconv.o
+  CC       lib/strnlen1.o
+  CC       lib/strintcmp.o
+  CC       lib/strnumcmp.o
+  CC       lib/sys_socket.o
+  CC       lib/tempname.o
+  CC       lib/glthread/threadlib.o
+  CC       lib/timespec.o
+  CC       lib/glthread/tls.o
+  CC       lib/trim.o
+  CC       lib/u64.o
+  CC       lib/unicodeio.o
+  CC       lib/unistd.o
+  CC       lib/dup-safer.o
+  CC       lib/fd-safer.o
+  CC       lib/pipe-safer.o
+  CC       lib/unistr/u8-mbtoucr.o
+  CC       lib/unistr/u8-uctomb.o
+  CC       lib/unistr/u8-uctomb-aux.o
+  CC       lib/uniwidth/width.o
+  CC       lib/userspec.o
+  CC       lib/utimecmp.o
+  CC       lib/utimens.o
+  CC       lib/verror.o
+  CC       lib/version-etc.o
+  CC       lib/version-etc-fsf.o
+  CC       lib/wctype-h.o
+  CC       lib/write-any-file.o
+  CC       lib/xmalloc.o
+  CC       lib/xalloc-die.o
+  CC       lib/xbinary-io.o
+  CC       lib/xdectoimax.o
+  CC       lib/xdectoumax.o
+  CC       lib/xfts.o
+  CC       lib/xgetcwd.o
+  CC       lib/xgetgroups.o
+  CC       lib/xgethostname.o
+  CC       lib/xmemcoll.o
+  CC       lib/xnanosleep.o
+  CC       lib/xprintf.o
+  CC       lib/xreadlink.o
+  CC       lib/xsize.o
+  CC       lib/xstriconv.o
+  CC       lib/xstrndup.o
+  CC       lib/xstrtod.o
+  CC       lib/xstrtoimax.o
+  CC       lib/xstrtol.o
+  CC       lib/xstrtoul.o
+  CC       lib/xstrtol-error.o
+  CC       lib/xstrtold.o
+  CC       lib/xstrtoumax.o
+  CC       lib/xvasprintf.o
+  CC       lib/xasprintf.o
+  CC       lib/yesno.o
+  CC       lib/asnprintf.o
+  CC       lib/chdir-long.o
+  CC       lib/explicit_bzero.o
+  CC       lib/fclose.o
+  CC       lib/fcntl.o
+  CC       lib/fflush.o
+  CC       lib/fpurge.o
+  CC       lib/freadahead.o
+  CC       lib/freadptr.o
+  CC       lib/freopen.o
+  CC       lib/fseek.o
+  CC       lib/fseeko.o
+  CC       lib/fseterr.o
+  CC       lib/fsusage.o
+  CC       lib/fts.o
+  CC       lib/futimens.o
+  CC       lib/getfilecon.o
+  CC       lib/getpass.o
+  CC       lib/isapipe.o
+  CC       lib/localtime-buffer.o
+  CC       lib/mbrlen.o
+  CC       lib/mbrtowc.o
+  CC       lib/mktime.o
+  CC       lib/mountlist.o
+  CC       lib/nanosleep.o
+  CC       lib/obstack.o
+  CC       lib/openat-proc.o
+  CC       lib/printf-args.o
+  CC       lib/printf-parse.o
+  CC       lib/readutmp.o
+  CC       lib/selinux-at.o
+  CC       lib/sig2str.o
+  CC       lib/time_rz.o
+  CC       lib/utimensat.o
+  CC       lib/vasnprintf.o
+  AR       lib/libcoreutils.a
+  CCLD     src/chroot
+  CC       src/hostid.o
+  CCLD     src/hostid
+  CC       src/timeout.o
+  CC       src/operand2sig.o
+  CCLD     src/timeout
+  CC       src/nice.o
+  CCLD     src/nice
+  CC       src/who.o
+  CCLD     src/who
+  CC       src/users.o
+  CCLD     src/users
+  CC       src/pinky.o
+  CCLD     src/pinky
+  CC       src/uptime.o
+  CCLD     src/uptime
+  CC       src/stty.o
+  CCLD     src/stty
+  CC       src/df.o
+  CC       src/find-mount-point.o
+  CCLD     src/df
+  CC       src/stdbuf.o
+  CCLD     src/stdbuf
+  CC       src/lbracket.o
+  CCLD     src/[
+  CC       src/b2sum-md5sum.o
+  CC       src/blake2/b2sum-blake2b-ref.o
+  CC       src/blake2/b2sum-b2sum.o
+  CCLD     src/b2sum
+  CC       src/base64-base64.o
+  CCLD     src/base64
+  CC       src/base32-base64.o
+  CCLD     src/base32
+  CC       src/basename.o
+  CCLD     src/basename
+  CC       src/cat.o
+  CCLD     src/cat
+  CC       src/chcon.o
+  CCLD     src/chcon
+  CC       src/chgrp.o
+  CC       src/chown-core.o
+  CCLD     src/chgrp
+  CC       src/chmod.o
+  CCLD     src/chmod
+  CC       src/chown.o
+  CCLD     src/chown
+  CC       src/cksum.o
+  CCLD     src/cksum
+  CC       src/comm.o
+  CCLD     src/comm
+  CC       src/cp.o
+  CC       src/copy.o
+  CC       src/cp-hash.o
+  CC       src/extent-scan.o
+  CC       src/force-link.o
+  CC       src/selinux.o
+  CCLD     src/cp
+  CC       src/csplit.o
+  CCLD     src/csplit
+  CC       src/cut.o
+  CC       src/set-fields.o
+  CCLD     src/cut
+  CC       src/date.o
+  CCLD     src/date
+  CC       src/dd.o
+  CCLD     src/dd
+  CC       src/ls.o
+  CCLD     src/dir
+  CC       src/dircolors.o
+  CCLD     src/dircolors
+  CC       src/dirname.o
+  CCLD     src/dirname
+  CC       src/du.o
+  CCLD     src/du
+  CC       src/echo.o
+  CCLD     src/echo
+  CC       src/env.o
+  CCLD     src/env
+  CC       src/expand.o
+  CC       src/expand-common.o
+  CCLD     src/expand
+  CC       src/expr.o
+  CCLD     src/expr
+  CC       src/factor.o
+  CCLD     src/factor
+  CC       src/false.o
+  CCLD     src/false
+  CC       src/fmt.o
+  CCLD     src/fmt
+  CC       src/fold.o
+  CCLD     src/fold
+  CC       src/ginstall-install.o
+  CC       src/ginstall-prog-fprintf.o
+  CC       src/ginstall-copy.o
+  CC       src/ginstall-cp-hash.o
+  CC       src/ginstall-extent-scan.o
+  CC       src/ginstall-force-link.o
+  CC       src/ginstall-selinux.o
+  CCLD     src/ginstall
+  CC       src/groups.o
+  CC       src/group-list.o
+  CCLD     src/groups
+  CC       src/head.o
+  CCLD     src/head
+  CC       src/id.o
+  CCLD     src/id
+  CC       src/join.o
+  CCLD     src/join
+  CC       src/kill.o
+  CCLD     src/kill
+  CC       src/link.o
+  CCLD     src/link
+  CC       src/ln.o
+  CC       src/relpath.o
+  CCLD     src/ln
+  CC       src/logname.o
+  CCLD     src/logname
+  CCLD     src/ls
+  CC       src/md5sum-md5sum.o
+  CCLD     src/md5sum
+  CC       src/mkdir.o
+  CC       src/prog-fprintf.o
+  CCLD     src/mkdir
+  CC       src/mkfifo.o
+  CCLD     src/mkfifo
+  CC       src/mknod.o
+  CCLD     src/mknod
+  CC       src/mktemp.o
+  CCLD     src/mktemp
+  CC       src/mv.o
+  CC       src/remove.o
+  CCLD     src/mv
+  CC       src/nl.o
+  CCLD     src/nl
+  CC       src/nproc.o
+  CCLD     src/nproc
+  CC       src/nohup.o
+  CCLD     src/nohup
+  CC       src/numfmt.o
+  CCLD     src/numfmt
+  CC       src/od.o
+  CCLD     src/od
+  CC       src/paste.o
+  CCLD     src/paste
+  CC       src/pathchk.o
+  CCLD     src/pathchk
+  CC       src/pr.o
+  CCLD     src/pr
+  CC       src/printenv.o
+  CCLD     src/printenv
+  CC       src/printf.o
+  CCLD     src/printf
+  CC       src/ptx.o
+  CCLD     src/ptx
+  CC       src/pwd.o
+  CCLD     src/pwd
+  CC       src/readlink.o
+  CCLD     src/readlink
+  CC       src/realpath.o
+  CCLD     src/realpath
+  CC       src/rm.o
+  CCLD     src/rm
+  CC       src/rmdir.o
+  CCLD     src/rmdir
+  CC       src/runcon.o
+  CCLD     src/runcon
+  CC       src/seq.o
+  CCLD     src/seq
+  CC       src/sha1sum-md5sum.o
+  CCLD     src/sha1sum
+  CC       src/sha224sum-md5sum.o
+  CCLD     src/sha224sum
+  CC       src/sha256sum-md5sum.o
+  CCLD     src/sha256sum
+  CC       src/sha384sum-md5sum.o
+  CCLD     src/sha384sum
+  CC       src/sha512sum-md5sum.o
+  CCLD     src/sha512sum
+  CC       src/shred.o
+  CCLD     src/shred
+  CC       src/shuf.o
+  CCLD     src/shuf
+  CC       src/sleep.o
+  CCLD     src/sleep
+  CC       src/sort.o
+  CCLD     src/sort
+  CC       src/split.o
+  CCLD     src/split
+  CC       src/stat.o
+  CCLD     src/stat
+  CC       src/sum.o
+  CCLD     src/sum
+  CC       src/sync.o
+  CCLD     src/sync
+  CC       src/tac.o
+  CCLD     src/tac
+  CC       src/tail.o
+  CCLD     src/tail
+  CC       src/tee.o
+  CCLD     src/tee
+  CC       src/test.o
+  CCLD     src/test
+  CC       src/touch.o
+  CCLD     src/touch
+  CC       src/tr.o
+  CCLD     src/tr
+  CC       src/true.o
+  CCLD     src/true
+  CC       src/truncate.o
+  CCLD     src/truncate
+  CC       src/tsort.o
+  CCLD     src/tsort
+  CC       src/tty.o
+  CCLD     src/tty
+  CC       src/uname.o
+  CCLD     src/uname
+  CC       src/unexpand.o
+  CCLD     src/unexpand
+  CC       src/uniq.o
+  CCLD     src/uniq
+  CC       src/unlink.o
+  CCLD     src/unlink
+  CCLD     src/vdir
+  CC       src/wc.o
+  CCLD     src/wc
+  CC       src/whoami.o
+  CCLD     src/whoami
+  CC       src/yes.o
+  CCLD     src/yes
+  CC       src/getlimits.o
+  CCLD     src/getlimits
+  CC       src/make-prime-list.o
+  CCLD     src/make-prime-list
+  CC       src/libstdbuf_so-libstdbuf.o
+  CCLD     src/libstdbuf.so
+  GEN      man/chroot.1
+  GEN      man/hostid.1
+  GEN      man/timeout.1
+  GEN      man/nice.1
+  GEN      man/who.1
+  GEN      man/users.1
+  GEN      man/pinky.1
+  GEN      man/uptime.1
+  GEN      man/stty.1
+  GEN      man/df.1
+  GEN      man/stdbuf.1
+  GEN      man/b2sum.1
+  GEN      man/base64.1
+  GEN      man/base32.1
+  GEN      man/basename.1
+  GEN      man/cat.1
+  GEN      man/chcon.1
+  GEN      man/chgrp.1
+  GEN      man/chmod.1
+  GEN      man/chown.1
+  GEN      man/cksum.1
+  GEN      man/comm.1
+  GEN      man/cp.1
+  GEN      man/csplit.1
+  GEN      man/cut.1
+  GEN      man/date.1
+  GEN      man/dd.1
+  GEN      man/dir.1
+  GEN      man/dircolors.1
+  GEN      man/dirname.1
+  GEN      man/du.1
+  GEN      man/echo.1
+  GEN      man/env.1
+  GEN      man/expand.1
+  GEN      man/expr.1
+  GEN      man/factor.1
+  GEN      man/false.1
+  GEN      man/fmt.1
+  GEN      man/fold.1
+  GEN      man/install.1
+  GEN      man/groups.1
+  GEN      man/head.1
+  GEN      man/id.1
+  GEN      man/join.1
+  GEN      man/kill.1
+  GEN      man/link.1
+  GEN      man/ln.1
+  GEN      man/logname.1
+  GEN      man/ls.1
+  GEN      man/md5sum.1
+  GEN      man/mkdir.1
+  GEN      man/mkfifo.1
+  GEN      man/mknod.1
+  GEN      man/mktemp.1
+  GEN      man/mv.1
+  GEN      man/nl.1
+  GEN      man/nproc.1
+  GEN      man/nohup.1
+  GEN      man/numfmt.1
+  GEN      man/od.1
+  GEN      man/paste.1
+  GEN      man/pathchk.1
+  GEN      man/pr.1
+  GEN      man/printenv.1
+  GEN      man/printf.1
+  GEN      man/ptx.1
+  GEN      man/pwd.1
+  GEN      man/readlink.1
+  GEN      man/realpath.1
+  GEN      man/rm.1
+  GEN      man/rmdir.1
+  GEN      man/runcon.1
+  GEN      man/seq.1
+  GEN      man/sha1sum.1
+  GEN      man/sha224sum.1
+  GEN      man/sha256sum.1
+  GEN      man/sha384sum.1
+  GEN      man/sha512sum.1
+  GEN      man/shred.1
+  GEN      man/shuf.1
+  GEN      man/sleep.1
+  GEN      man/sort.1
+  GEN      man/split.1
+  GEN      man/stat.1
+  GEN      man/sum.1
+  GEN      man/sync.1
+  GEN      man/tac.1
+  GEN      man/tail.1
+  GEN      man/tee.1
+  GEN      man/test.1
+  GEN      man/touch.1
+  GEN      man/tr.1
+  GEN      man/true.1
+  GEN      man/truncate.1
+  GEN      man/tsort.1
+  GEN      man/tty.1
+  GEN      man/uname.1
+  GEN      man/unexpand.1
+  GEN      man/uniq.1
+  GEN      man/unlink.1
+  GEN      man/vdir.1
+  GEN      man/wc.1
+  GEN      man/whoami.1
+  GEN      man/yes.1
+make[2]: Leaving directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29'
+Making all in gnulib-tests
+make[2]: Entering directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29
+/gnulib-tests'
+make  all-recursive
+make[3]: Entering directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29
+/gnulib-tests'
+Making all in .
+make[4]: Entering directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29
+/gnulib-tests'
+make[4]: Nothing to be done for 'all-am'.
+make[4]: Leaving directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29
+/gnulib-tests'
+make[3]: Leaving directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29
+/gnulib-tests'
+make[2]: Leaving directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29
+/gnulib-tests'
+make[1]: Leaving directory 
+'/w/home.20/cs/ugrad/hakan/cs35l/ass3/coreutils-8.29'
+
+Back in our working directory, we run both the buggy 
+ls -a -A in coreutilsInstall and the patched version
+in coreutils-8.29
+
+./coreutilsInstall/bin/ls -a -A
+
+.   coreutils-8.29         coreutils-8.29.tar.xz.sig 
+gnu-keyring.gpg  la        numbers.txt  output2      
+shuf.c     shuf.py  time2
+..  coreutils-8.29.tar.xz  coreutilsInstall          
+hw3.txt          lab3.txt  output1      randline.py  
+shuf.c.py  time1
+
+
+produces the same buggy output as before with . and ..
+included in the file names 
+
+./coreutils-8.29/src/ls -a -A
+
+produces the correct output! It only outputs filenames
+and no . and .. 
+
+coreutils-8.29         coreutils-8.29.tar.xz.sig  
+gnu-keyring.gpg  la        numbers.txt  output2      
+shuf.c     shuf.py  time2
+coreutils-8.29.tar.xz  coreutilsInstall           
+hw3.txt          lab3.txt  output1      randline.py  
+shuf.c.py  time1
+

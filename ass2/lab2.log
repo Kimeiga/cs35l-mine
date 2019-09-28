@@ -1,0 +1,569 @@
+Assignment 2. Shell scripting
+
+Laboratory: Spell-checking Hawaiian
+
+I ran "export LC_ALL='C'" to switch LC_CTYPE to "C". I ran locale afterwards 
+and verified.
+
+I changed into a new directory for assignment 2.
+I ran "cat /usr/share/dict/words > words.txt" to copy the words file to 
+the working directory.
+
+I ran wget with the url I copied from the assignment page url to get the 
+html needed.
+
+I ran all tr commands appended with "< assign2.html" to use the webpage 
+as input.
+The command tr -c 'A-Za-z' '[\n*]' replaces every non alpha character with 
+a new line
+The command tr -cs 'A-Za-z' '[\n*]' replaces every consecutive occurance 
+of a non alpha character with one new line.
+The command tr -cs 'A-Za-z' '[\n*]' | sort is identical to the above command 
+except it sorts all lines alplabetically
+The command tr -cs 'A-Za-z' '[\n*]' | sort -u is identical to the above 
+command except it only shows one occurance of each word
+The command tr -cs 'A-Za-z' '[\n*]' | sort -u | comm - words shows the 
+words that are the same in both the assignment webpage and the words file, 
+and those that are unique to each one.
+The command tr -cs 'A-Za-z' '[\n*]' | sort -u | comm -23 - words is identical 
+to the above command except it only shows the words that are unique to 
+the assignment webpage.
+
+I used wget http://mauimapp.com/moolelo/hwnwdseng.htm command to get the 
+English to Hawaiian dictionary webpage.
+
+I then constructed the following shell script to generate a Hawaiian dictionary 
+from this page.
+
+#!/bin/bash
+
+grep '<td>.\{1,\}<\/td>' |
+sed -n '0~2p' |
+tr '[:upper:]' '[:lower:]' |
+tr "\`" "\'" |
+sed 's/<[^>]*>//g' <&0 |
+tr -s '[,[:space:]]' '\n' |
+grep "^[pk\' mnwlhaeiou]\{1,\}$" |
+sed '/^\s*$/d' |
+sort -u
+
+To execute this script, first one must run chmod +x buildwords in order 
+to grant oneself execution ability.
+
+I ran the following command to generate a Hawaiian dictionary in hwords.
+
+
+cat hwnwdseng | ./buildwords > hwords
+
+The crude English spellchecker command 'tr -cs 'A-Za-z' '[\n*]' | sort 
+-u | comm -23 - words' can be modified to be a Hawaiian spellchecker by 
+cleaning the text input and using 'hwords' rather than 'words' in the following 
+command
+
+cat FILE | tr [:upper:] [:lower:] | tr -cs 'pk\'mnwlhaeiou' '[\n*]' | sort 
+-u | comm -23 - hwords
+
+Now I run this spellchecker on the assignment webpage as follows.
+
+cat assign2.html | tr [:upper:] [:lower:] | tr -cs "pk\'mnwlhaeiou" '[\n*]' 
+| sort -u | comm -23 - hwords
+
+This displays all misspelled words in the hawaiian language in the webpage 
+of the assignment. In order to see the number of misspelled words, I pipe 
+the output to wc -l like so
+
+cat assign2.html | tr [:upper:] [:lower:] | tr -cs "pk\'mnwlhaeiou" '[\n*]' 
+| sort -u | comm -23 - hwords | wc -l
+
+There are 198 misspelled words in assign2.html
+
+I then run this Hawaiian spellchecker on hwords itself to verify if it 
+works correctly. I run the following command:
+
+cat hwords | tr [:upper:] [:lower:] | tr -cs "pk\'mnwlhaeiou" '[\n*]' | 
+sort -u | comm -23 - hwords
+
+and receive 0 results. This means there are 0 misspelled Hawaiian words 
+in the Hawaiian dictionary, as expected.
+
+To find the number of misspelled words in English on the assignment webpage, 
+I run the original spellchecker command with added functionality to make 
+all characters lowercase and only select for words with alpha characters.
+
+
+cat assign2.html | tr [:upper:] [:lower:] | tr -cs 'A-Za-z' '[\n*]' | sort 
+-u | comm -23 - words
+
+This command returns the message "comm: file 2 is not in sorted order". 
+I ran the command 'sort -c words' to check if words is in sorted order, 
+and received "sort: words:2: disorder: 10-point"
+
+This means that the provided words English dictionary is not in sorted 
+order, and as such, the number of misspelled words in English produced 
+by the command may be incorrect.
+
+To find the number of words misspelled in English in the assignment webpage, 
+as before, I pipe the spellchecker to wc -l in the following command
+
+cat assign2.html | tr [:upper:] [:lower:] | tr -cs 'A-Za-z' '[\n*]' | sort 
+-u | comm -23 - words | wc -l
+
+There are 39 misspelled words in the assignment webpage.
+
+To find which words are misspelled as English but not as Hawaiian and vice 
+versa, I compared the misspelled words by creating two files from the 
+aforementioned commands.
+
+cat assign2.html | tr [:upper:] [:lower:] | tr -cs 'A-Za-z' '[\n*]' | sort -u 
+| comm -23 - hwords > hawResult
+
+cat assign2.html | tr [:upper:] [:lower:] | tr -cs 'A-Za-z' '[\n*]' | sort -u 
+| comm -23 - words > engResult
+
+I then compare these files with the following command.
+
+comm hawResult engResult
+
+To find files unique to hawResult, that is, words in the assignment webpage 
+that are misspelled in hawaiian and not in  English, we add the -23 flag 
+to suppress the other two streams.
+
+comm -23 hawResult engResult
+
+This produces these words:
+
+a
+able
+about
+above
+abovementioned
+accent
+address
+after
+afterwards
+against
+all
+also
+an
+and
+any
+apostrophe
+are
+argument
+arguments
+as
+ascii
+assign
+assignment
+assume
+assumption
+attempt
+automate
+awk
+b
+bar
+be
+before
+being
+body
+br
+briefly
+bug
+bugs
+but
+by
+c
+can
+capitalized
+carriage
+case
+cased
+cases
+cat
+change
+chap
+characters
+check
+checked
+checker
+checkers
+checking
+checks
+columns
+com
+comm
+command
+commands
+commas
+contain
+containing
+contains
+content
+contents
+convenience
+copy
+copying
+copyright
+count
+create
+crude
+cs
+d
+describe
+described
+detail
+dict
+dictionary
+did
+differs
+directories
+directory
+disk
+do
+doesn
+don
+down
+dtd
+duplicate
+duplicates
+each
+en
+english
+entries
+equiv
+equivalent
+equivalents
+error
+examine
+example
+examples
+exp
+export
+extract
+fetch
+file
+files
+find
+finds
+first
+fix
+following
+foo
+for
+formatted
+from
+generally
+give
+given
+gnu
+grave
+gt
+h
+hand
+handle
+happened
+hard
+has
+hawaiian
+head
+hint
+homework
+hosts
+how
+however
+hr
+id
+if
+ignore
+immediately
+implementation
+improperly
+in
+input
+into
+introductory
+is
+it
+its
+itself
+just
+k
+keep
+l
+lab
+laboratory
+language
+last
+later
+lc
+leading
+length
+less
+let
+letters
+lexicographically
+li
+like
+line
+link
+links
+list
+ln
+locale
+log
+lots
+lower
+lt
+m
+mail
+many
+may
+mentioned
+merely
+meta
+misspelled
+modify
+more
+multiple
+n
+name
+named
+names
+naming
+need
+no
+non
+not
+note
+notebook
+nothing
+number
+o
+obtain
+occurrence
+of
+on
+one
+only
+or
+ordinary
+org
+orthography
+other
+others
+output
+outputs
+p
+page
+particular
+paul
+people
+per
+performed
+please
+portable
+position
+pre
+prefer
+prepared
+previous
+problem
+problems
+project
+public
+pubs
+putting
+r
+rather
+re
+read
+readable
+reading
+record
+recursively
+regular
+reject
+remaining
+removing
+repair
+replace
+replaces
+report
+represent
+reproduce
+result
+resulting
+results
+returns
+right
+rules
+run
+runnable
+running
+s
+samp
+save
+script
+scripting
+see
+share
+shell
+should
+shown
+silently
+similarly
+simple
+since
+single
+so
+software
+some
+sort
+sorted
+sorting
+space
+spaces
+special
+spell
+spelling
+standard
+start
+steve
+strict
+subdirectories
+submit
+substitutions
+such
+supports
+suppose
+sure
+symbolic
+system
+systematic
+systematically
+t
+tables
+tag
+take
+takes
+test
+text
+than
+that
+the
+their
+them
+then
+there
+these
+they
+thing
+this
+title
+to
+tr
+traditional
+transcript
+treat
+true
+two
+type
+typed
+u
+under
+unique
+upper
+use
+user
+using
+utilities
+v
+var
+w
+want
+we
+web
+were
+what
+where
+which
+whose
+why
+with
+word
+words
+work
+working
+worry
+write
+x
+y
+you
+your
+z
+za
+
+
+We pipe this to wc -l to find the number of words. There are 370 words 
+misspelled in Hawaiian and not in English.
+
+To find words misspelled in English and not in Hawaiian, we add the -13 
+flag to comm to suppress the other streams.
+
+comm -13 hawResult engResult
+
+This produces these words
+
+halau
+lau
+wiki
+
+There are 3 words misspelled 
+in English and not in Hawaiian.
+
+To find the words misspelled in both English and Hawaiian, we add the -12 
+flag to comm to ignore the first 2 streams.
+
+comm -12 hawResult engResult
+
+This produces the following words
+
+
+basedefs
+buildwords
+charset
+cmp
+ctype
+doctype
+eggert
+eword
+href
+htm
+html
+http
+hwnwdseng
+hword
+hwords
+idx
+linux
+mauimapp
+moolelo
+ndash
+okina
+onlinepubs
+opengroup
+posix
+sameln
+seasnet
+td
+toc
+ul
+usr
+utf
+vandebogart
+wget
+wikipedia
+www
+
+
+Using wc -l, we find that there are 36 words misspelled in both Hawaiian and English.

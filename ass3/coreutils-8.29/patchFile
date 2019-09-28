@@ -1,0 +1,94 @@
+From 8969027d310e036f1c11f3d8f6da2e4a55ecb460 Mon Sep 17 00:00:00 2001
+From: Paul Eggert <eggert@cs.ucla.edu>
+Date: Tue, 27 Mar 2018 14:55:22 -0700
+Subject: [PATCH] ls: -A now overrides -a
+
+Problem reported by Karl Berry (Bug#30963).
+* NEWS: Mention this.
+* src/ls.c (decode_switches): Implement this.
+* tests/ls/a-option.sh: New file.
+* tests/local.mk (all_tests): Add it.
+---
+ NEWS                 |  3 +++
+ src/ls.c             |  3 +--
+ tests/local.mk       |  1 +
+ tests/ls/a-option.sh | 27 +++++++++++++++++++++++++++
+ 4 files changed, 32 insertions(+), 2 deletions(-)
+ create mode 100755 tests/ls/a-option.sh
+
+diff --git a/NEWS b/NEWS
+index 351a0827b..207e785b3 100644
+--- a/NEWS
++++ b/NEWS
+@@ -4,6 +4,9 @@ GNU coreutils NEWS                                    -*- outline -*-
+ 
+ ** Bug fixes
+ 
++  'ls -aA' is now equivalent to 'ls -A', since -A now overrides -a.
++  [bug introduced in coreutils-5.3.0]
++
+   'mv -n A B' no longer suffers from a race condition that can
+   overwrite a simultaneously-created B.  This bug fix requires
+   platform support for the renameat2 or renameatx_np syscalls, found
+diff --git a/src/ls.c b/src/ls.c
+index c89a22f68..bae2c1104 100644
+--- a/src/ls.c
++++ b/src/ls.c
+@@ -1903,8 +1903,7 @@ decode_switches (int argc, char **argv)
+           break;
+ 
+         case 'A':
+-          if (ignore_mode == IGNORE_DEFAULT)
+-            ignore_mode = IGNORE_DOT_AND_DOTDOT;
++          ignore_mode = IGNORE_DOT_AND_DOTDOT;
+           break;
+ 
+         case 'B':
+diff --git a/tests/local.mk b/tests/local.mk
+index c798cc83a..e60ea1d1e 100644
+--- a/tests/local.mk
++++ b/tests/local.mk
+@@ -575,6 +575,7 @@ all_tests =					\
+   tests/ln/sf-1.sh				\
+   tests/ln/slash-decorated-nonexistent-dest.sh	\
+   tests/ln/target-1.sh				\
++  tests/ls/a-option.sh				\
+   tests/ls/abmon-align.sh			\
+   tests/ls/block-size.sh			\
+   tests/ls/color-clear-to-eol.sh		\
+diff --git a/tests/ls/a-option.sh b/tests/ls/a-option.sh
+new file mode 100755
+index 000000000..4fe1e9394
+--- /dev/null
++++ b/tests/ls/a-option.sh
+@@ -0,0 +1,27 @@
++#!/bin/sh
++# exercise the -a option
++
++# Copyright 2018 Free Software Foundation, Inc.
++
++# This program is free software: you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation, either version 3 of the License, or
++# (at your option) any later version.
++
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++
++# You should have received a copy of the GNU General Public License
++# along with this program.  If not, see <https://www.gnu.org/licenses/>.
++
++. "${srcdir=.}/tests/init.sh"; path_prepend_ ./src
++print_ver_ ls
++
++mkdir d || framework_failure_
++
++ls -aA d >out || framework_failure
++compare /dev/null out || fail=1
++
++Exit $fail
+-- 
+2.14.3
+

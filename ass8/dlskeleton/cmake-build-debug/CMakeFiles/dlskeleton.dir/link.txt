@@ -1,0 +1,1 @@
+/usr/bin/cc -g  -Wl,--enable-auto-import CMakeFiles/dlskeleton.dir/randall.c.o CMakeFiles/dlskeleton.dir/randcpuid.c.o CMakeFiles/dlskeleton.dir/randlibhw.c.o CMakeFiles/dlskeleton.dir/randlibsw.c.o CMakeFiles/dlskeleton.dir/randmain.c.o  -o dlskeleton.exe -Wl,--out-implib,libdlskeleton.dll.a -Wl,--major-image-version,0,--minor-image-version,0 

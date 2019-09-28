@@ -1,0 +1,141 @@
+1.
+man man
+/description
+man -k
+to search man for a command with a specific word in their man page, use man -k (word)
+
+2.
+which cp
+which wc
+ls -l /bin/cp
+ls -l /usr/bin/wc
+
+cp is in /bin/cp and wc is in /usr/bin/wc
+
+3.
+cd /bin
+find --help
+find -name '?'
+whatis w
+whatis X
+whatis [
+X --help
+w shows who is logged on and what they are doing.
+[ is bash built-in commands
+X is a windowing system for bitmap displays for UNIX systems
+
+4. readlink
+cd /usr/bin
+ls
+ls -la
+man grep
+ls -la | grep "emacs"
+cd /etc/alternatives
+ls -la | grep "emacs"
+cd /usr/bin
+the executable of emacs is emacs-23.1 in /usr/bin
+
+5.
+cd /usr/bin
+ls -la | grep "emacs"
+the version number of emacs in /usr/bin is 24.3.
+
+cd /
+emacs --version
+the version number of plain emacs is 24.3.1
+
+they are different programs because
+
+6.
+man chmod
+g+s (sticky bit) sets group ID on execution
+o-x (setguid) removes executable permissions from others
+
+7.
+cd /usr/local/cs
+man find
+
+8.
+whereis find
+cd /usr/bin
+find . -maxdepth 1 -type -ls | wc -l
+
+there are 271 soft links in the same directory as find
+
+
+9.
+cd /usr/lib64
+man sort
+find . -type f
+find . -type f -print f '%T %p\n
+find . -type f -print f '%T+ %p\n'
+find . -type f -print f '%T+ %p\n' | sort | head -n 5
+
+find . -type f -printf '%T+ %p\n" | sort | head | grep '^.'
+find . -type f -printf '%T+ %p\n" | sort | head | grep "^."
+
+the oldest file is /tcl8.5/Tix8.4.3/bitmaps/act_fold.gif
+
+10.
+localedef
+localedef --help
+localedef --usage
+
+locale gets its data from /usr/lib/locale:/usr/share/i18n
+
+11.
+emacs
+C-h a downcase
+
+downcase-region and downcase-word have downcase in their names
+
+12.
+emacs
+C-M-r
+C-G
+C-x o
+C-M-v
+
+C-M-r incrementally searches a regular expression backwards from the cursor
+C-M-v scrolls down in another window
+
+13.
+emacs
+a s d f
+C-space
+C-a
+C-g
+
+C-s
+C-g
+C-g
+
+
+C-g quits a partially typed command in a safe way. You can also use two C-g's to quit a search.
+
+14.
+h e l l o
+C-space
+C-a
+M-w
+C-e
+enter
+M-x yank
+enter
+C-y
+
+yank pastes text that had been killed, and can be easily invoked with C-y
+
+15.
+cd /usr/bin
+ls -l
+man ls
+emacs
+C-x d
+enter
+C-x C-c
+ls -la
+
+ls -l prints a list of all the files in the current directory that do not start with '.' or are hidden in long format. This means that the item type, permissions, number of links in a directory, owner, size, date of last modification, and name will be displayed.
+
+dired prints all files in the directory with equal amount of details. This includes files that start with '.' and hidden files.

@@ -1,0 +1,1 @@
+/usr/bin/cc -g  -Wl,--enable-auto-import CMakeFiles/ass5.dir/tr2b.c.o  -o ass5.exe -Wl,--out-implib,libass5.dll.a -Wl,--major-image-version,0,--minor-image-version,0 

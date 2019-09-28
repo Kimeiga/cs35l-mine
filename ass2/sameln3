@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# Take a directory path as the argument
+dir=$1
+# Set D as the list of files/directories at dir
+D=`ls -a $dir`
+# Make Internal Field Separator newlines, not spaces
+IFS=$'\n'
+# Declare an array
+declare -a ARRAY
+# Initialize iterator
+let count=0
+
+# Iterate through all the items in directory, add proper hidden files into ARRAY
+for Fh in $D
+do
+  # Can't be a symlink or subdirectory
+  if [ ! -L "$dir/$Fh" ] && [ ! -d "$dir/$Fh" ]
+  then
+    # Ignore "." and ".."
+    if [ "$Fh" = . ] || [ "$Fh" = .. ]
+    then
+      continue
+    fi
+    # Must be a file and with proper reading permissions
+    if [ -f "$dir/$Fh" ] && [ -r "$dir/$Fh" ]
+    then
+      # Filename must start with a "."
+      if [[ $Fh = \.* ]]
+      then
+        # Add file to ARRAY and iterate
+        ARRAY[$count]="$dir/$Fh"
+        let count=count+1
+      fi
+    else
+      echo "$dir/$Fh does not have reading permissions"
+    fi
+  fi
+done
+
+# Iterate through all items again, adding regular files into ARRAY, did hidden
+# vs. normal separately so hidden would have precedence regardless of locale
+for F in $D
+do
+  # Can't be a symlink or subdirectory
+  if [ ! -L "$dir/$F" ] && [ ! -d "$dir/$F" ]
+  then
+    # Must be a file
+    if [ -f "$dir/$F" ]
+    then
+      # Filename must NOT start with a "."
+      if [[ $F != \.* ]]
+      then
+        # Must have proper reading permissions
+        if [ -r "$dir/$F" ]
+        then
+          # Add file to ARRAY and iterate
+          ARRAY[$count]="$dir/$F"
+          let count=count+1
+        else
+          echo "$dir/$F does not have reading permissions"
+        fi
+      fi
+    else
+      echo "$dir/$F is not a regular file."
+    fi
+  fi
+done
+
+# Nested for loop through ARRAY, comparing each item against all others
+for F1 in "${ARRAY[@]}"
+do
+  for F2 in "${ARRAY[@]}"
+  do
+    # Cannot compare links to self, get inode number stat to check if linked
+    let F1_inode=`stat -c '%i' $F1`
+    let F2_inode=`stat -c '%i' $F2`
+
+    # Cannot be the same file/name or be hardlinked to itself
+    if [ $F1 != $F2 ]
+    then
+      if [ $F1_inode != $F2_inode ]
+      then
+        # Compare the two array elements. 0 means the same, 1 is dif, 2 is error
+        cmp -s $F1 $F2
+        let result=$?
+        if [ $result == 0 ]
+        then
+          # They are the same file, remove old $F2 and make symlink
+          rm $F2
+          ln $F1 $F2
+          echo "adfs"
+        elif [ $result -ge 2 ]
+        then
+          echo "The cmp command returned an error."
+        fi
+      fi
+    fi
+  done
+done

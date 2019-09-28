@@ -1,0 +1,5 @@
+the stuff has to be pertenent to the class
+
+explain the basics for everyone 
+
+multithreading is better than multiprocessing because you dont want to share everything

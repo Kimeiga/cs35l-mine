@@ -1,0 +1,1 @@
+lock is the public key, private is the key that the only one person has

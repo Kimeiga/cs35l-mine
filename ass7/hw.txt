@@ -1,0 +1,18 @@
+1. The network is still secure because it is encrypted with a public
+key, and the private key would only be possessed by the party receiving the
+message. The private key cannot be accessed by a third party.
+
+If the observers had our keystrokes, and I logged in to the ssh with a password,
+there could be an issue because then the observers would be able to use
+the password to get the private key and then decrypt the data.
+
+If they had our usb, they would have our private keys in the .ssh folder and
+could decrypt all the messages.
+
+2. The gpg2 --verify command verifies that the public key and signature agree.
+If a third party intercepted the package and resigned it with a public key,
+the verification would still be valid but the package would no longer be
+only touched by the right person.
+
+A solution to this problem would be to have a third party verify the proper 
+creators of the files rather than relying on only a public key and signature.
